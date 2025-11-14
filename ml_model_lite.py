@@ -5,9 +5,14 @@ Uses PIL for image processing without heavy dependencies
 
 import numpy as np
 from PIL import Image
-import cv2
 import warnings
 warnings.filterwarnings('ignore')
+
+# Try to import cv2, but make it optional
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 
 class MedicalImagingAnalyzer:
     """
@@ -40,15 +45,18 @@ class MedicalImagingAnalyzer:
                 
                 img_array = np.array(img)
             except Exception as pil_err:
-                # Fallback to OpenCV
-                try:
-                    img_array = cv2.imread(image_path)
-                    if img_array is None:
-                        return {"error": f"Cannot read image file: {str(pil_err)}"}
-                    # Convert BGR to RGB for consistency
-                    img_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
-                except Exception as cv_err:
-                    return {"error": f"Cannot open image file: {str(pil_err)}. Fallback error: {str(cv_err)}"}
+                # Fallback to OpenCV if available
+                if cv2 is not None:
+                    try:
+                        img_array = cv2.imread(image_path)
+                        if img_array is None:
+                            return {"error": f"Cannot read image file: {str(pil_err)}"}
+                        # Convert BGR to RGB for consistency
+                        img_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+                    except Exception as cv_err:
+                        return {"error": f"Cannot open image file: {str(pil_err)}. Fallback error: {str(cv_err)}"}
+                else:
+                    return {"error": f"Cannot open image file: {str(pil_err)}"}
             
             if img_array is None:
                 return {"error": "Failed to load image array"}
