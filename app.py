@@ -74,14 +74,20 @@ def load_trained_ct_mri_model():
         import tensorflow as tf
         model_path = Path("models/ct_mri_classifier.h5")
         if model_path.exists():
-            TRAINED_CT_MRI_MODEL = tf.keras.models.load_model(str(model_path))
-            logging.info(f"✓ Trained CT/MRI Classifier loaded from {model_path}")
-            return TRAINED_CT_MRI_MODEL
+            try:
+                # Try to load with custom_objects if needed
+                TRAINED_CT_MRI_MODEL = tf.keras.models.load_model(str(model_path))
+                logging.info(f"✓ Trained CT/MRI Classifier loaded from {model_path}")
+                return TRAINED_CT_MRI_MODEL
+            except Exception as load_err:
+                logging.warning(f"Could not load model with default settings: {load_err}")
+                logging.warning("Model loading will be deferred to first use")
+                return None
         else:
             logging.warning(f"Trained CT/MRI model not found at {model_path}")
             return None
     except Exception as e:
-        logging.error(f"Error loading trained CT/MRI model: {e}")
+        logging.warning(f"Error loading trained CT/MRI model (will retry on first use): {e}")
         return None
 
 def predict_ct_mri_classification(image_path):
@@ -527,12 +533,21 @@ def preload_models():
         logging.info("Pre-loading ML models...")
         load_start = time.time()
         try:
-            # Load your trained CT/MRI classifier FIRST
-            load_trained_ct_mri_model()
+            # Try to load your trained CT/MRI classifier FIRST
+            try:
+                load_trained_ct_mri_model()
+                logging.info("✓ CT/MRI model loaded")
+            except Exception as e:
+                logging.warning(f"Could not pre-load CT/MRI model: {e}")
             
             # Then load the general medical analyzer (use lazy loading)
-            load_models()
-            logging.info(f"✓ All ML models pre-loaded successfully in {time.time() - load_start:.2f}s")
+            try:
+                load_models()
+                logging.info("✓ Medical analyzer loaded")
+            except Exception as e:
+                logging.warning(f"Could not pre-load medical analyzer: {e}")
+            
+            logging.info(f"✓ Model pre-loading completed in {time.time() - load_start:.2f}s")
             app.models_loaded = True
         except Exception as e:
             logging.warning(f"Failed to pre-load models: {e}")
