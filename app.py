@@ -71,6 +71,7 @@ def load_trained_ct_mri_model():
     """Load your trained CT/MRI classifier model"""
     global TRAINED_CT_MRI_MODEL
     try:
+        import tensorflow as tf
         model_path = Path("models/ct_mri_classifier.h5")
         if model_path.exists():
             TRAINED_CT_MRI_MODEL = tf.keras.models.load_model(str(model_path))
@@ -529,8 +530,8 @@ def preload_models():
             # Load your trained CT/MRI classifier FIRST
             load_trained_ct_mri_model()
             
-            # Then load the general medical analyzer
-            analyzer = get_analyzer()
+            # Then load the general medical analyzer (use lazy loading)
+            load_models()
             logging.info(f"✓ All ML models pre-loaded successfully in {time.time() - load_start:.2f}s")
             app.models_loaded = True
         except Exception as e:
