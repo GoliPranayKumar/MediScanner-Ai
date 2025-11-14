@@ -13,17 +13,30 @@ except Exception:
 import markdown
 from markupsafe import Markup
 
-# Try to use full model with disease detection, fallback to lightweight
-try:
-    from ml_model import get_analyzer
-    extract_features_for_ml = None  # Full model doesn't have this
-except Exception:
-    from ml_model_lite import get_analyzer, extract_features_for_ml
+# Lazy loading - don't import heavy models at startup
 import joblib
 from pathlib import Path
-import tensorflow as tf
 from PIL import Image
 import numpy as np
+
+# These will be imported on first use
+get_analyzer = None
+extract_features_for_ml = None
+tf = None
+
+# Lazy loading function for models
+def load_models():
+    """Lazy load models on first use"""
+    global get_analyzer, extract_features_for_ml, tf
+    if get_analyzer is None:
+        try:
+            from ml_model_lite import get_analyzer as lite_analyzer, extract_features_for_ml as lite_features
+            get_analyzer = lite_analyzer
+            extract_features_for_ml = lite_features
+            logging.info("✓ Loaded lightweight ML model")
+        except Exception as e:
+            logging.error(f"Failed to load models: {e}")
+            raise
 
 # Load environment variables from .env file
 load_dotenv()
@@ -127,6 +140,9 @@ def health_check():
 @app.route("/api/analyze", methods=["POST"])
 def analyze_image():
     """Analyze image using Groq API or fallback to ML models"""
+    # Lazy load models on first use
+    load_models()
+    
     start_time = time.time()
     try:
         if "image" not in request.files:
@@ -158,6 +174,9 @@ def analyze_image():
 @app.route("/api/ml-analyze", methods=["POST"])
 def ml_analyze_image():
     """Analyze image using Deep Learning models (DenseNet + ResNet)"""
+    # Lazy load models on first use
+    load_models()
+    
     start_time = time.time()
     try:
         logging.info(f"Request files: {request.files.keys()}")
