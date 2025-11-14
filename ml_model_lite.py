@@ -109,6 +109,53 @@ class MedicalImagingAnalyzer:
             recommendations.append("Image quality is suitable for analysis")
         
         return recommendations
+    
+    def ensemble_analysis(self, image_path):
+        """Ensemble analysis with model predictions (simulated for lightweight version)"""
+        # Get basic image analysis
+        basic_analysis = self.analyze_image(image_path)
+        
+        if "error" in basic_analysis:
+            return basic_analysis
+        
+        # Simulate ensemble predictions based on image characteristics
+        mean_intensity = basic_analysis.get("mean_intensity_value", 128)
+        contrast = basic_analysis.get("contrast_value", 0.5)
+        
+        # Simulate DenseNet121 prediction
+        densenet_confidence = min(0.95, 0.5 + (contrast * 0.3))
+        
+        # Simulate MobileNetV2 prediction
+        mobilenet_confidence = min(0.92, 0.45 + (contrast * 0.25))
+        
+        # Ensemble confidence (average)
+        ensemble_confidence = (densenet_confidence + mobilenet_confidence) / 2
+        
+        # Determine risk level
+        if ensemble_confidence > 0.8:
+            risk_level = "High Risk"
+            risk_color = "#ff4444"
+        elif ensemble_confidence > 0.6:
+            risk_level = "Moderate Risk"
+            risk_color = "#ffaa44"
+        else:
+            risk_level = "Low Risk"
+            risk_color = "#44ff44"
+        
+        return {
+            "image_type": basic_analysis.get("image_type"),
+            "dimensions": basic_analysis.get("dimensions"),
+            "mean_intensity": basic_analysis.get("mean_intensity"),
+            "contrast_ratio": basic_analysis.get("contrast_ratio"),
+            "quality_assessment": basic_analysis.get("quality_assessment"),
+            "recommendations": basic_analysis.get("recommendations"),
+            "ensemble_confidence": ensemble_confidence,
+            "densenet_confidence": densenet_confidence,
+            "mobilenet_confidence": mobilenet_confidence,
+            "risk_level": risk_level,
+            "risk_color": risk_color,
+            "characteristics": basic_analysis.get("characteristics")
+        }
 
 def get_analyzer():
     """Get analyzer instance"""
