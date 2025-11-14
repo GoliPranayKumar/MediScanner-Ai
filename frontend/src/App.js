@@ -361,8 +361,9 @@ function App() {
     setScanProgress(10);
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      console.log('API URL:', apiUrl);
+      // Use relative path - works on both localhost and production
+      const apiUrl = process.env.REACT_APP_API_URL || '';
+      console.log('API URL:', apiUrl || 'Using relative path');
       
       setScanProgress(50);
       
@@ -423,7 +424,8 @@ function App() {
     setChatLoading(true);
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      // Use relative path - works on both localhost and production
+      const apiUrl = process.env.REACT_APP_API_URL || '';
       
       const response = await axios.post(
         `${apiUrl}/api/ask-medical`,
