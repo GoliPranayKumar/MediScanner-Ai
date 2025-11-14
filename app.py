@@ -566,8 +566,15 @@ def ask_medical():
             }), 503
 
         try:
-            # Initialize GROQ client
-            client = Groq(api_key=ENV_GROQ_API_KEY)
+            # Initialize GROQ client with minimal parameters
+            try:
+                client = Groq(api_key=ENV_GROQ_API_KEY)
+            except TypeError as te:
+                # Handle version compatibility issues
+                logging.warning(f"Groq client init error: {te}, retrying with alternative method")
+                import os
+                os.environ['GROQ_API_KEY'] = ENV_GROQ_API_KEY
+                client = Groq()
 
             # Build system message with medical context
             system_message = """You are a highly knowledgeable medical AI assistant with expertise in healthcare and disease management.
