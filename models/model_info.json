@@ -1,0 +1,14 @@
+{
+  "model_type": "CT/MRI Binary Classifier",
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "classes": [
+    "CT",
+    "MRI"
+  ],
+  "total_parameters": 1442337,
+  "training_date": "2025-11-14T10:10:43.834864"
+}
