@@ -525,33 +525,14 @@ def serve_react(path):
 def favicon():
     return Response(status=204)
 
-# Pre-load models on app startup to avoid cold start delays
+# Skip pre-loading to avoid startup issues
+# Models will be loaded on first use (lazy loading)
 @app.before_request
 def preload_models():
-    """Pre-load ML models on first request to avoid delays"""
+    """Skip pre-loading - models load on first use"""
     if not hasattr(app, 'models_loaded'):
-        logging.info("Pre-loading ML models...")
-        load_start = time.time()
-        try:
-            # Try to load your trained CT/MRI classifier FIRST
-            try:
-                load_trained_ct_mri_model()
-                logging.info("✓ CT/MRI model loaded")
-            except Exception as e:
-                logging.warning(f"Could not pre-load CT/MRI model: {e}")
-            
-            # Then load the general medical analyzer (use lazy loading)
-            try:
-                load_models()
-                logging.info("✓ Medical analyzer loaded")
-            except Exception as e:
-                logging.warning(f"Could not pre-load medical analyzer: {e}")
-            
-            logging.info(f"✓ Model pre-loading completed in {time.time() - load_start:.2f}s")
-            app.models_loaded = True
-        except Exception as e:
-            logging.warning(f"Failed to pre-load models: {e}")
-            app.models_loaded = False
+        logging.info("App started - models will load on first use (lazy loading)")
+        app.models_loaded = True
 
 @app.route("/api/ask-medical", methods=["POST"])
 def ask_medical():
